@@ -3,822 +3,879 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#0a0c12">
+<meta name="theme-color" content="#080b14">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="VoxLingo">
-<meta name="description" content="Traductor con IA, voz y grabación">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-<title>VoxLingo — Traductor IA</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<title>VoxLingo — Conversación</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Cabinet+Grotesk:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0c12;
-    --surface: #12151f;
-    --card: #181c2a;
-    --border: rgba(255,255,255,0.07);
-    --accent: #6c63ff;
-    --accent2: #00d9b8;
-    --text: #f0f0f8;
-    --muted: rgba(240,240,248,0.45);
-    --danger: #ff4f6e;
-    --rec: #ff3355;
-    --r: 14px;
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-  }
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+:root {
+  --bg:    #080b14;
+  --s1:    #0e1220;
+  --s2:    #141928;
+  --card:  #181e30;
+  --bord:  rgba(255,255,255,0.06);
+  --a:     #6c63ff;
+  --b:     #00c9a7;
+  --rec:   #ff3355;
+  --txt:   #eef0f8;
+  --dim:   rgba(238,240,248,0.38);
+  --r:     16px;
+  --sat:   env(safe-area-inset-top,0px);
+  --sab:   env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'DM Sans',sans-serif;color:var(--txt);display:flex;flex-direction:column;padding-top:var(--sat)}
 
-  html, body {
-    height: 100%;
-    overflow: hidden;
-  }
+/* NAV */
+nav{display:flex;align-items:center;flex-shrink:0;border-bottom:0.5px solid var(--bord);background:var(--bg);z-index:10}
+.logo-nav{padding:0 12px;font-family:'Cabinet Grotesk',sans-serif;font-size:16px;font-weight:900;background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap}
+.tabs-inner{display:flex;flex:1}
+.tab{flex:1;padding:13px 0 11px;font-size:12px;font-weight:500;color:var(--dim);text-align:center;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.3px}
+.tab.on{color:var(--txt);border-color:var(--a)}
+.tab:nth-child(2).on{border-color:var(--b)}
+.tab:nth-child(3).on{border-color:#f59e0b}
+.nav-ico{width:42px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.nav-ico svg{width:17px;height:17px;stroke:var(--dim);fill:none}
+.nav-ico:active svg{stroke:var(--txt)}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Space Grotesk', sans-serif;
-    display: flex;
-    flex-direction: column;
-    padding-top: var(--safe-top);
-  }
+/* VIEWS */
+.view{display:none;flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(12px + var(--sab))}
+.view.on{display:flex;flex-direction:column}
 
-  /* ── HEADER ── */
-  header {
-    flex-shrink: 0;
-    padding: 16px 20px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 0.5px solid var(--border);
-    background: var(--bg);
-  }
-  .logo {
-    font-family: 'Syne', sans-serif;
-    font-size: 22px; font-weight: 800;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .logo span { font-weight: 400; }
-  .header-right { display: flex; gap: 8px; align-items: center; }
-  .icon-btn {
-    width: 36px; height: 36px;
-    background: rgba(255,255,255,0.05);
-    border: 0.5px solid var(--border);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: background 0.15s;
-  }
-  .icon-btn:active { background: rgba(255,255,255,0.12); }
-  .icon-btn svg { width: 18px; height: 18px; stroke: var(--muted); }
+/* ══ CONVERSACIÓN ══ */
+.conv-wrap{display:flex;flex-direction:column;flex:1;min-height:0}
 
-  /* ── SCROLLABLE CONTENT ── */
-  .content {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: calc(80px + var(--safe-bottom));
-  }
+.persona{flex:1;display:flex;flex-direction:column;padding:14px;gap:9px;position:relative;min-height:0}
+.persona-a{background:linear-gradient(180deg,rgba(108,99,255,.07) 0%,transparent 100%);border-bottom:0.5px solid var(--bord);transform:rotate(180deg)}
+.persona-b{background:linear-gradient(180deg,rgba(0,201,167,.07) 0%,transparent 100%)}
+.persona-a .inner{transform:rotate(180deg)}
+.inner{display:flex;flex-direction:column;gap:9px;height:100%}
 
-  /* ── LANG BAR ── */
-  .lang-bar {
-    display: flex; align-items: center;
-    margin: 14px 16px;
-    background: var(--card);
-    border-radius: var(--r);
-    border: 0.5px solid var(--border);
-    overflow: hidden;
-  }
-  .lang-sel {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; padding: 13px 8px;
-    cursor: pointer; position: relative;
-  }
-  .lang-sel:first-child { border-right: 0.5px solid var(--border); }
-  .lang-label { font-size: 10px; color: var(--muted); margin-bottom: 3px; letter-spacing: 0.6px; text-transform: uppercase; }
-  .lang-name { font-size: 16px; font-weight: 600; }
-  select.lang-native { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; font-size: 16px; }
-  .swap-btn {
-    width: 42px; height: 42px;
-    background: rgba(108,99,255,0.15);
-    border: 0.5px solid rgba(108,99,255,0.3);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; margin: 0 6px; flex-shrink: 0;
-    transition: background 0.15s;
-  }
-  .swap-btn:active { background: rgba(108,99,255,0.3); transform: rotate(180deg); transition: transform 0.3s, background 0.15s; }
-  .swap-btn svg { width: 18px; height: 18px; stroke: #9d97ff; fill: none; }
+.lang-row{display:flex;align-items:center;gap:8px}
+.lang-badge{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:40px;font-size:12px;font-weight:600;cursor:pointer;position:relative}
+.persona-a .lang-badge{background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);color:#a79fff}
+.persona-b .lang-badge{background:rgba(0,201,167,.12);border:1px solid rgba(0,201,167,.25);color:#00c9a7}
+.lang-badge select{position:absolute;inset:0;opacity:0;width:100%;height:100%;font-size:16px;cursor:pointer}
+.lang-badge svg{width:13px;height:13px;stroke:currentColor;fill:none;flex-shrink:0}
+.who{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);margin-left:auto}
 
-  /* ── CARDS ── */
-  .card {
-    margin: 0 16px 10px;
-    background: var(--card);
-    border-radius: var(--r);
-    border: 0.5px solid var(--border);
-    overflow: hidden;
-  }
-  .card-header {
-    padding: 10px 14px 8px;
-    font-size: 10px; color: var(--muted);
-    letter-spacing: 0.6px; text-transform: uppercase;
-    border-bottom: 0.5px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  textarea {
-    width: 100%; background: transparent; border: none; outline: none;
-    color: var(--text); font-family: 'Space Grotesk', sans-serif;
-    font-size: 17px; line-height: 1.55; padding: 14px;
-    resize: none; min-height: 100px; caret-color: var(--accent);
-  }
-  textarea::placeholder { color: rgba(240,240,248,0.2); }
+.bubble{flex:1;border-radius:12px;padding:12px;min-height:52px;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+.persona-a .bubble{background:rgba(108,99,255,.08);border:0.5px solid rgba(108,99,255,.18)}
+.persona-b .bubble{background:rgba(0,201,167,.06);border:0.5px solid rgba(0,201,167,.15)}
+.orig{font-size:12px;color:var(--dim);line-height:1.4}
+.orig:empty{display:none}
+.transl{font-size:17px;font-weight:500;line-height:1.45;color:var(--txt)}
+.transl.empty{color:rgba(238,240,248,.18);font-size:13px;font-weight:400}
 
-  .card-actions {
-    display: flex; gap: 8px; padding: 8px 10px 10px;
-    border-top: 0.5px solid var(--border); flex-wrap: wrap;
-  }
-  .btn-sm {
-    display: flex; align-items: center; gap: 5px;
-    padding: 8px 12px;
-    background: rgba(255,255,255,0.04);
-    border: 0.5px solid var(--border);
-    border-radius: 9px;
-    color: var(--muted);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 12px; cursor: pointer; transition: all 0.15s;
-    white-space: nowrap;
-  }
-  .btn-sm:active { transform: scale(0.95); background: rgba(255,255,255,0.08); }
-  .btn-sm svg { width: 14px; height: 14px; stroke: currentColor; fill: none; flex-shrink: 0; }
-  .btn-sm.v { color: var(--accent); border-color: rgba(108,99,255,0.3); background: rgba(108,99,255,0.08); }
-  .btn-sm.t { color: var(--accent2); border-color: rgba(0,217,184,0.25); background: rgba(0,217,184,0.06); }
-  .btn-sm.ml { margin-left: auto; }
+.status-lbl{text-align:center;font-size:11px;color:var(--dim);min-height:15px;letter-spacing:.3px}
+.status-lbl.on{color:#a79fff}
+.persona-b .status-lbl.on{color:var(--b)}
 
-  /* ── TRANSLATE BTN ── */
-  .translate-wrap { margin: 0 16px 10px; }
-  .translate-btn {
-    width: 100%; padding: 15px;
-    background: linear-gradient(135deg, var(--accent) 0%, #4e46e5 100%);
-    border: none; border-radius: var(--r);
-    color: #fff; font-family: 'Syne', sans-serif;
-    font-size: 16px; font-weight: 700;
-    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: opacity 0.15s, transform 0.1s;
-  }
-  .translate-btn:active { opacity: 0.85; transform: scale(0.98); }
-  .translate-btn:disabled { opacity: 0.35; pointer-events: none; }
-  .translate-btn .spin {
-    width: 18px; height: 18px;
-    border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
-    border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
-  }
-  .translate-btn.loading .spin { display: block; }
-  .translate-btn.loading .btn-txt { display: none; }
+.mic-big{width:100%;padding:16px 0;border-radius:var(--r);border:none;font-family:'Cabinet Grotesk',sans-serif;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .15s;color:#fff}
+.persona-a .mic-big{background:linear-gradient(135deg,var(--a),#4e46e5);box-shadow:0 4px 20px rgba(108,99,255,.22)}
+.persona-b .mic-big{background:linear-gradient(135deg,var(--b),#009e84);box-shadow:0 4px 20px rgba(0,201,167,.18)}
+.mic-big:active{transform:scale(.97);opacity:.88}
+.mic-big.listening{animation:glow-a 1s ease-in-out infinite}
+.persona-b .mic-big.listening{animation:glow-b 1s ease-in-out infinite}
+.mic-big svg{width:20px;height:20px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-  /* ── OUTPUT ── */
-  .output-text {
-    padding: 14px; font-size: 19px; font-weight: 500;
-    line-height: 1.5; min-height: 90px;
-    color: var(--accent2); white-space: pre-wrap; word-break: break-word;
-  }
-  .output-text.empty { color: rgba(240,240,248,0.18); font-size: 15px; font-weight: 400; }
+/* DIVIDER */
+.divider{flex-shrink:0;height:44px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-top:0.5px solid var(--bord);border-bottom:0.5px solid var(--bord);gap:10px;position:relative;z-index:2}
+.div-badge{padding:5px 14px;background:var(--card);border:0.5px solid var(--bord);border-radius:40px;font-size:11px;color:var(--dim);letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.div-dot{width:6px;height:6px;border-radius:50%}
+.div-dot.a{background:var(--a)}.div-dot.b{background:var(--b)}
 
-  /* ── STATUS ── */
-  .status-bar {
-    margin: 0 16px 6px; font-size: 11px; color: var(--muted);
-    min-height: 16px; display: flex; align-items: center; gap: 5px;
-  }
-  .s-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent2); display: none; }
-  .status-bar.on .s-dot { display: block; animation: blink 0.8s ease-in-out infinite; }
+/* REC BAR — barra flotante de grabación de sesión */
+.rec-bar{
+  position:sticky;bottom:0;left:0;right:0;z-index:20;
+  background:var(--bg);border-top:0.5px solid var(--bord);
+  padding:10px 14px calc(10px + var(--sab));
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.rec-toggle{
+  display:flex;align-items:center;gap:7px;
+  padding:10px 18px;border-radius:40px;border:none;
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .15s;flex:1;justify-content:center;
+}
+.rec-toggle.idle{background:rgba(255,51,85,.1);border:0.5px solid rgba(255,51,85,.3);color:var(--rec)}
+.rec-toggle.recording{background:rgba(255,51,85,.22);border:0.5px solid rgba(255,51,85,.5);color:#fff;animation:pulse-rec 1s ease-in-out infinite}
+.rec-toggle svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.rdot{width:8px;height:8px;border-radius:50%;background:var(--rec);display:none;flex-shrink:0}
+.rec-toggle.recording .rdot{display:block;animation:blink .7s ease-in-out infinite}
+.rec-timer{font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums;min-width:42px;text-align:right}
+.rec-timer.on{color:var(--rec)}
 
-  /* ── MIC ROW ── */
-  .mic-row { display: flex; gap: 10px; margin: 0 16px 10px; }
-  .mic-btn {
-    flex: 1; height: 68px; border-radius: var(--r);
-    border: 0.5px solid var(--border); background: var(--card);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
-    cursor: pointer; transition: all 0.15s; color: var(--muted);
-    font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;
-  }
-  .mic-btn svg { width: 22px; height: 22px; stroke: currentColor; fill: none; }
-  .mic-btn:active { transform: scale(0.97); }
-  .mic-btn.v-btn { background: rgba(108,99,255,0.1); border-color: rgba(108,99,255,0.3); color: var(--accent); }
-  .mic-btn.r-btn { background: rgba(255,51,85,0.07); border-color: rgba(255,51,85,0.25); color: var(--rec); }
-  .mic-btn.v-btn.on { animation: pv 1s ease-in-out infinite; }
-  .mic-btn.r-btn.on { animation: pr 1s ease-in-out infinite; }
-  .rdot { width: 7px; height: 7px; border-radius: 50%; background: var(--rec); display: none; }
-  .mic-btn.r-btn.on .rdot { display: block; animation: blink 0.8s ease-in-out infinite; }
+/* ══ HISTORIAL ══ */
+.hist-view{padding:14px;gap:10px}
+.hist-header{display:flex;align-items:center;justify-content:space-between}
+.hist-title{font-family:'Cabinet Grotesk',sans-serif;font-size:18px;font-weight:900;color:var(--txt)}
+.hist-clear{padding:7px 14px;background:rgba(255,79,110,.08);border:0.5px solid rgba(255,79,110,.2);border-radius:40px;color:#ff4f6e;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer}
+.hist-clear:active{background:rgba(255,79,110,.18)}
 
-  /* ── RECORDINGS ── */
-  .recs-wrap { margin: 0 16px 10px; }
-  .sec-title {
-    font-size: 10px; color: var(--muted);
-    text-transform: uppercase; letter-spacing: 0.6px;
-    margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;
-  }
-  .sec-title span { color: var(--accent); font-size: 12px; }
-  .rec-list { display: flex; flex-direction: column; gap: 7px; }
-  .rec-item {
-    background: var(--card); border: 0.5px solid var(--border);
-    border-radius: 10px; padding: 11px 12px;
-    display: flex; align-items: center; gap: 9px;
-    animation: fadeIn 0.25s ease;
-  }
-  .rplay {
-    width: 34px; height: 34px; border-radius: 50%;
-    background: rgba(0,217,184,0.1); border: 0.5px solid rgba(0,217,184,0.25);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; flex-shrink: 0;
-  }
-  .rplay svg { width: 14px; height: 14px; stroke: var(--accent2); fill: none; margin-left: 2px; }
-  .rplay.playing svg { margin-left: 0; }
-  .rinfo { flex: 1; min-width: 0; }
-  .rname { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rmeta { font-size: 10px; color: var(--muted); margin-top: 2px; }
-  .ract {
-    width: 28px; height: 28px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; flex-shrink: 0;
-  }
-  .ract.dl { background: rgba(108,99,255,0.1); border: 0.5px solid rgba(108,99,255,0.2); text-decoration: none; }
-  .ract.del { background: rgba(255,79,110,0.08); border: 0.5px solid rgba(255,79,110,0.2); }
-  .ract svg { width: 13px; height: 13px; fill: none; }
-  .ract.dl svg { stroke: var(--accent); }
-  .ract.del svg { stroke: var(--danger); }
+/* Session cards */
+.session-card{background:var(--card);border:0.5px solid var(--bord);border-radius:var(--r);overflow:hidden;margin-top:12px}
+.session-head{padding:12px 14px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid var(--bord)}
+.session-info{flex:1;min-width:0}
+.session-name{font-size:13px;font-weight:600}
+.session-meta{font-size:11px;color:var(--dim);margin-top:2px}
+.session-acts{display:flex;gap:6px;flex-shrink:0}
+.sact{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.sact.play{background:rgba(0,201,167,.1);border:0.5px solid rgba(0,201,167,.2)}
+.sact.play svg{stroke:var(--b)}
+.sact.dl{background:rgba(108,99,255,.1);border:0.5px solid rgba(108,99,255,.2);text-decoration:none}
+.sact.dl svg{stroke:var(--a)}
+.sact.del{background:rgba(255,79,110,.08);border:0.5px solid rgba(255,79,110,.2)}
+.sact.del svg{stroke:#ff4f6e}
+.sact svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sact:active{opacity:.7}
 
-  /* ── MODALS ── */
-  .overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
-    display: flex; align-items: flex-end; justify-content: center;
-    z-index: 100; padding-bottom: var(--safe-bottom);
-  }
-  .overlay.center { align-items: center; padding: 20px; }
-  .modal {
-    background: var(--surface); border: 0.5px solid rgba(108,99,255,0.3);
-    border-radius: 20px 20px 0 0; padding: 28px 22px 24px;
-    width: 100%; max-width: 480px;
-  }
-  .overlay.center .modal { border-radius: 18px; }
-  .modal-handle { width: 36px; height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; margin: 0 auto 20px; }
-  .modal h2 {
-    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; margin-bottom: 6px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .modal p { font-size: 13px; color: var(--muted); line-height: 1.55; margin-bottom: 18px; }
-  .modal input {
-    width: 100%; padding: 12px 14px;
-    background: var(--card); border: 0.5px solid rgba(108,99,255,0.35);
-    border-radius: 10px; color: var(--text);
-    font-family: 'Space Grotesk', sans-serif; font-size: 15px; outline: none;
-    margin-bottom: 12px;
-  }
-  .modal input::placeholder { color: rgba(240,240,248,0.2); }
-  .modal-cta {
-    width: 100%; padding: 14px;
-    background: linear-gradient(135deg, var(--accent), #4e46e5);
-    border: none; border-radius: 12px; color: #fff;
-    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer;
-  }
-  .modal-note { font-size: 11px; color: var(--muted); margin-top: 10px; text-align: center; line-height: 1.5; }
-  .modal-note a { color: var(--accent); text-decoration: none; }
+/* Turn list inside session */
+.turn-list{display:flex;flex-direction:column}
+.turn-item{padding:11px 14px;display:flex;gap:10px;border-bottom:0.5px solid var(--bord)}
+.turn-item:last-child{border-bottom:none}
+.turn-who{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.turn-who.a{background:rgba(108,99,255,.2);color:var(--a)}
+.turn-who.b{background:rgba(0,201,167,.15);color:var(--b)}
+.turn-content{flex:1;min-width:0}
+.turn-orig{font-size:12px;color:var(--dim);line-height:1.4;margin-bottom:3px}
+.turn-trans{font-size:14px;font-weight:500;line-height:1.4;color:var(--txt)}
+.turn-time{font-size:10px;color:rgba(238,240,248,.22);margin-top:3px}
 
-  /* ── INSTALL BANNER ── */
-  .install-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--card); border-top: 0.5px solid rgba(108,99,255,0.35);
-    padding: 14px 16px calc(14px + var(--safe-bottom));
-    display: flex; align-items: center; gap: 12px;
-    z-index: 50; animation: slideUp 0.4s ease;
-  }
-  .install-bar .logo-small {
-    width: 44px; height: 44px; border-radius: 12px; background: var(--surface);
-    border: 0.5px solid rgba(108,99,255,0.3);
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-    font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 800;
-    color: var(--accent);
-  }
-  .install-info { flex: 1; min-width: 0; }
-  .install-info strong { display: block; font-size: 14px; font-weight: 600; }
-  .install-info small { font-size: 11px; color: var(--muted); }
-  .install-cta {
-    padding: 9px 16px; background: var(--accent); border: none;
-    border-radius: 10px; color: #fff; font-family: 'Space Grotesk', sans-serif;
-    font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
-  }
-  .install-dismiss {
-    width: 28px; height: 28px; background: transparent; border: none;
-    color: var(--muted); font-size: 18px; cursor: pointer; padding: 0;
-    display: flex; align-items: center; justify-content: center;
-  }
+.empty-hist{text-align:center;padding:48px 20px;color:var(--dim);font-size:14px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.empty-hist svg{width:40px;height:40px;stroke:rgba(238,240,248,.18);fill:none;stroke-width:1.5}
 
-  /* ── COPY TOAST ── */
-  .toast {
-    position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-10px);
-    background: var(--card); border: 0.5px solid rgba(0,217,184,0.4);
-    color: var(--accent2); padding: 10px 20px; border-radius: 40px;
-    font-size: 13px; font-weight: 500; opacity: 0;
-    transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 200;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* ══ TEXTO ══ */
+.text-wrap{padding:14px;display:flex;flex-direction:column;gap:10px;flex:1}
+.lang-bar{display:flex;align-items:center;background:var(--card);border-radius:var(--r);border:0.5px solid var(--bord);overflow:hidden}
+.ls{flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 8px;cursor:pointer;position:relative}
+.ls:first-child{border-right:0.5px solid var(--bord)}
+.ls-lbl{font-size:9px;color:var(--dim);letter-spacing:.7px;text-transform:uppercase;margin-bottom:3px}
+.ls-val{font-size:14px;font-weight:600}
+.ls select{position:absolute;inset:0;opacity:0;width:100%;height:100%;font-size:16px;cursor:pointer}
+.swap{width:38px;height:38px;border-radius:50%;margin:0 5px;flex-shrink:0;background:rgba(108,99,255,.12);border:0.5px solid rgba(108,99,255,.25);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.swap svg{width:16px;height:16px;stroke:#9d97ff;fill:none}
+.swap:active{background:rgba(108,99,255,.25)}
+.tcard{background:var(--card);border-radius:var(--r);border:0.5px solid var(--bord);overflow:hidden}
+.tcard-head{padding:9px 14px;font-size:9px;color:var(--dim);letter-spacing:.7px;text-transform:uppercase;border-bottom:0.5px solid var(--bord);display:flex;align-items:center;justify-content:space-between}
+textarea{width:100%;background:transparent;border:none;outline:none;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:16px;line-height:1.55;padding:13px;resize:none;min-height:90px;caret-color:var(--a)}
+textarea::placeholder{color:rgba(238,240,248,.18)}
+.tcard-foot{display:flex;gap:7px;padding:7px 10px 10px;border-top:0.5px solid var(--bord);flex-wrap:wrap}
+.tb{display:flex;align-items:center;gap:5px;padding:7px 12px;background:rgba(255,255,255,.04);border:0.5px solid var(--bord);border-radius:9px;color:var(--dim);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tb:active{transform:scale(.95);background:rgba(255,255,255,.09)}
+.tb svg{width:13px;height:13px;stroke:currentColor;fill:none;flex-shrink:0}
+.tb.va{color:var(--a);border-color:rgba(108,99,255,.25);background:rgba(108,99,255,.07)}
+.tb.vb{color:var(--b);border-color:rgba(0,201,167,.2);background:rgba(0,201,167,.05)}
+.tb.ml{margin-left:auto}
+.tr-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--a),#4e46e5);border:none;border-radius:var(--r);color:#fff;font-family:'Cabinet Grotesk',sans-serif;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s,transform .1s}
+.tr-btn:active{opacity:.85;transform:scale(.98)}
+.tr-btn:disabled{opacity:.3;pointer-events:none}
+.tr-btn .sp{width:17px;height:17px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.tr-btn.ld .sp{display:block}
+.tr-btn.ld .bt{display:none}
+.out-txt{padding:13px;font-size:17px;font-weight:500;line-height:1.5;min-height:80px;color:var(--b);white-space:pre-wrap;word-break:break-word}
+.out-txt.empty{color:rgba(238,240,248,.18);font-size:14px;font-weight:400}
+.st-bar{font-size:11px;color:var(--dim);min-height:15px;display:flex;align-items:center;gap:5px}
+.st-dot{width:5px;height:5px;border-radius:50%;background:var(--b);display:none}
+.st-bar.on .st-dot{display:block;animation:blink .8s ease-in-out infinite}
 
-  /* ── ANIMATIONS ── */
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  @keyframes pv { 0%,100%{box-shadow:0 0 0 0 rgba(108,99,255,0.25)} 50%{box-shadow:0 0 0 8px rgba(108,99,255,0)} }
-  @keyframes pr { 0%,100%{box-shadow:0 0 0 0 rgba(255,51,85,0.25)} 50%{box-shadow:0 0 0 8px rgba(255,51,85,0)} }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
-  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;align-items:flex-end;justify-content:center;z-index:200;padding-bottom:var(--sab)}
+.overlay.center{align-items:center;padding:20px}
+.modal{background:var(--s2);border:0.5px solid rgba(108,99,255,.3);border-radius:22px 22px 0 0;padding:28px 22px 24px;width:100%;max-width:480px}
+.overlay.center .modal{border-radius:20px}
+.mhandle{width:34px;height:3px;background:rgba(255,255,255,.12);border-radius:2px;margin:0 auto 22px}
+.modal h2{font-family:'Cabinet Grotesk',sans-serif;font-size:22px;font-weight:900;margin-bottom:6px;background:linear-gradient(135deg,var(--a),var(--b));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.modal p{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:18px}
+.modal input{width:100%;padding:12px 14px;background:var(--card);border:0.5px solid rgba(108,99,255,.35);border-radius:11px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:15px;outline:none;margin-bottom:12px}
+.modal input::placeholder{color:rgba(238,240,248,.2)}
+.modal-cta{width:100%;padding:14px;background:linear-gradient(135deg,var(--a),#4e46e5);border:none;border-radius:12px;color:#fff;font-family:'Cabinet Grotesk',sans-serif;font-size:16px;font-weight:800;cursor:pointer}
+.modal-note{font-size:11px;color:var(--dim);margin-top:10px;text-align:center;line-height:1.5}
+.modal-note a{color:var(--a);text-decoration:none}
 
-  .hidden { display: none !important; }
-  audio { display: none; }
+/* TOAST */
+.toast{position:fixed;top:54px;left:50%;transform:translateX(-50%) translateY(-8px);background:var(--card);border:0.5px solid rgba(0,201,167,.35);color:var(--b);padding:9px 20px;border-radius:40px;font-size:12px;font-weight:500;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap;z-index:300}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-  /* Copy btn inline */
-  .copy-row { display: flex; align-items: center; gap: 6px; }
-  .copy-btn { padding: 4px 10px !important; font-size: 11px !important; }
+/* ANIMATIONS */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes glow-a{0%,100%{box-shadow:0 4px 20px rgba(108,99,255,.22)}50%{box-shadow:0 4px 36px rgba(108,99,255,.55),0 0 0 8px rgba(108,99,255,.09)}}
+@keyframes glow-b{0%,100%{box-shadow:0 4px 20px rgba(0,201,167,.18)}50%{box-shadow:0 4px 36px rgba(0,201,167,.45),0 0 0 8px rgba(0,201,167,.07)}}
+@keyframes pulse-rec{0%,100%{box-shadow:0 0 0 0 rgba(255,51,85,.3)}50%{box-shadow:0 0 0 8px rgba(255,51,85,.0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.hidden{display:none!important}
+audio{display:none}
 </style>
 </head>
 <body>
 
-<!-- API KEY MODAL -->
+<!-- API MODAL -->
 <div class="overlay center" id="apiModal">
   <div class="modal">
-    <div class="modal-handle"></div>
+    <div class="mhandle"></div>
     <h2>VoxLingo</h2>
-    <p>Introduce tu clave de Anthropic para activar la traducción con IA. Se guarda solo en este dispositivo.</p>
-    <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off">
-    <button class="modal-cta" onclick="saveKey()">Activar traductor →</button>
-    <p class="modal-note">¿No tienes clave? <a href="https://console.anthropic.com" target="_blank">Obtenerla gratis en console.anthropic.com</a></p>
+    <p>Introduce tu API Key de Anthropic para activar la traducción con IA. Se guarda solo en este dispositivo.</p>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <button class="modal-cta" onclick="saveKey()">Activar →</button>
+    <p class="modal-note">¿Sin clave? <a href="https://console.anthropic.com" target="_blank">Obtenerla en console.anthropic.com</a></p>
   </div>
 </div>
 
-<!-- INSTALL BANNER -->
-<div class="install-bar hidden" id="installBar">
-  <div class="logo-small">VL</div>
-  <div class="install-info">
-    <strong>Instalar VoxLingo</strong>
-    <small>Añadir a la pantalla de inicio</small>
-  </div>
-  <button class="install-cta" onclick="installApp()">Instalar</button>
-  <button class="install-dismiss" onclick="dismissInstall()">✕</button>
-</div>
-
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 <audio id="audio"></audio>
 
-<header>
-  <div class="logo">Vox<span>Lingo</span></div>
-  <div class="header-right">
-    <div class="icon-btn" onclick="openSettings()" title="Ajustes">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-      </svg>
-    </div>
+<!-- NAV -->
+<nav>
+  <div class="logo-nav">VL</div>
+  <div class="tabs-inner">
+    <div class="tab on"   onclick="goTab(0)">💬 Conversación</div>
+    <div class="tab"      onclick="goTab(1)">📋 Historial</div>
+    <div class="tab"      onclick="goTab(2)">✏️ Texto</div>
   </div>
-</header>
-
-<div class="content">
-
-  <!-- LANG SELECTOR -->
-  <div class="lang-bar">
-    <div class="lang-sel">
-      <div class="lang-label">Origen</div>
-      <div class="lang-name" id="srcName">Español</div>
-      <select class="lang-native" id="srcLang" onchange="syncLangs()">
-        <option value="Español" data-code="es-ES" selected>Español</option>
-        <option value="English" data-code="en-US">English</option>
-        <option value="Français" data-code="fr-FR">Français</option>
-        <option value="Deutsch" data-code="de-DE">Deutsch</option>
-        <option value="Italiano" data-code="it-IT">Italiano</option>
-        <option value="Português" data-code="pt-BR">Português</option>
-        <option value="中文" data-code="zh-CN">中文</option>
-        <option value="日本語" data-code="ja-JP">日本語</option>
-        <option value="한국어" data-code="ko-KR">한국어</option>
-        <option value="Русский" data-code="ru-RU">Русский</option>
-        <option value="العربية" data-code="ar-SA">العربية</option>
-        <option value="हिन्दी" data-code="hi-IN">हिन्दी</option>
-        <option value="Türkçe" data-code="tr-TR">Türkçe</option>
-        <option value="Polski" data-code="pl-PL">Polski</option>
-        <option value="Nederlands" data-code="nl-NL">Nederlands</option>
-        <option value="Català" data-code="ca-ES">Català</option>
-        <option value="Valenciano" data-code="ca-ES">Valenciano</option>
-      </select>
-    </div>
-    <button class="swap-btn" onclick="swapLangs()">
-      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M8 3L4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/>
-      </svg>
-    </button>
-    <div class="lang-sel">
-      <div class="lang-label">Destino</div>
-      <div class="lang-name" id="tgtName">English</div>
-      <select class="lang-native" id="tgtLang" onchange="syncLangs()">
-        <option value="Español" data-code="es-ES">Español</option>
-        <option value="English" data-code="en-US" selected>English</option>
-        <option value="Français" data-code="fr-FR">Français</option>
-        <option value="Deutsch" data-code="de-DE">Deutsch</option>
-        <option value="Italiano" data-code="it-IT">Italiano</option>
-        <option value="Português" data-code="pt-BR">Português</option>
-        <option value="中文" data-code="zh-CN">中文</option>
-        <option value="日本語" data-code="ja-JP">日本語</option>
-        <option value="한국어" data-code="ko-KR">한국어</option>
-        <option value="Русский" data-code="ru-RU">Русский</option>
-        <option value="العربية" data-code="ar-SA">العربية</option>
-        <option value="हिन्दी" data-code="hi-IN">हिन्दी</option>
-        <option value="Türkçe" data-code="tr-TR">Türkçe</option>
-        <option value="Polski" data-code="pl-PL">Polski</option>
-        <option value="Nederlands" data-code="nl-NL">Nederlands</option>
-        <option value="Català" data-code="ca-ES">Català</option>
-        <option value="Valenciano" data-code="ca-ES">Valenciano</option>
-      </select>
-    </div>
+  <div class="nav-ico" onclick="openSettings()">
+    <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
   </div>
+</nav>
 
-  <!-- INPUT -->
-  <div class="card">
-    <div class="card-header">
-      <span>Texto a traducir</span>
-      <span id="cc" style="font-size:10px">0</span>
-    </div>
-    <textarea id="inp" placeholder="Escribe aquí o usa el micrófono..." rows="4"
-      oninput="document.getElementById('cc').textContent=this.value.length"></textarea>
-    <div class="card-actions">
-      <button class="btn-sm v" onclick="speechInput()">
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/>
-        </svg>
-        Dictar
-      </button>
-      <button class="btn-sm ml" onclick="clearAll()">
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 6h18M19 6l-1 14H6L5 6M8 6V4h8v2"/>
-        </svg>
-        Borrar
-      </button>
-    </div>
-  </div>
+<!-- ══════ TAB 0: CONVERSACIÓN ══════ -->
+<div class="view on" id="view0">
+  <div class="conv-wrap">
 
-  <!-- TRANSLATE BTN -->
-  <div class="translate-wrap">
-    <button class="translate-btn" id="tBtn" onclick="doTranslate()">
-      <div class="spin"></div>
-      <span class="btn-txt">
-        <svg style="width:17px;height:17px;stroke:#fff;stroke-width:2;fill:none;flex-shrink:0" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/>
-        </svg>
-        Traducir
-      </span>
-    </button>
-  </div>
-
-  <!-- STATUS -->
-  <div class="status-bar" id="sb">
-    <div class="s-dot"></div>
-    <span id="st"></span>
-  </div>
-
-  <!-- OUTPUT -->
-  <div class="card">
-    <div class="card-header">
-      <span>Traducción</span>
-      <div class="copy-row">
-        <button class="btn-sm t copy-btn" onclick="copyOut()">
-          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-          </svg>
-          Copiar
+    <!-- PERSONA A (girada) -->
+    <div class="persona persona-a">
+      <div class="inner">
+        <div class="lang-row">
+          <div class="lang-badge">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 1 0 20M12 2a14.5 14.5 0 0 0 0 20M2 12h20"/></svg>
+            <span id="aLangName">Español</span>
+            <select id="aLang" onchange="syncConvLangs()">
+              <option value="Español" data-code="es-ES" selected>Español</option>
+              <option value="English" data-code="en-US">English</option>
+              <option value="Français" data-code="fr-FR">Français</option>
+              <option value="Deutsch" data-code="de-DE">Deutsch</option>
+              <option value="Italiano" data-code="it-IT">Italiano</option>
+              <option value="Português" data-code="pt-BR">Português</option>
+              <option value="中文" data-code="zh-CN">中文</option>
+              <option value="日本語" data-code="ja-JP">日本語</option>
+              <option value="한국어" data-code="ko-KR">한국어</option>
+              <option value="Русский" data-code="ru-RU">Русский</option>
+              <option value="العربية" data-code="ar-SA">العربية</option>
+              <option value="Türkçe" data-code="tr-TR">Türkçe</option>
+              <option value="Polski" data-code="pl-PL">Polski</option>
+              <option value="Català" data-code="ca-ES">Català</option>
+              <option value="Valenciano" data-code="ca-ES">Valenciano</option>
+            </select>
+          </div>
+          <div class="who">Persona A</div>
+        </div>
+        <div class="bubble" id="aBubble">
+          <div class="orig" id="aOrig"></div>
+          <div class="transl empty" id="aTrans">Pulsa el botón y habla…</div>
+        </div>
+        <div class="status-lbl" id="aSt"></div>
+        <button class="mic-big" id="aMic" onclick="startConv('a')">
+          <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/></svg>
+          Hablar (Persona A)
         </button>
       </div>
     </div>
-    <div class="output-text empty" id="out">La traducción aparecerá aquí…</div>
-    <div class="card-actions">
-      <button class="btn-sm t" onclick="speakOut()">
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
-        </svg>
-        Escuchar
-      </button>
-      <button class="btn-sm ml" onclick="flipToInput()">
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 18l6-6-6-6"/>
-        </svg>
-        Usar como origen
-      </button>
+
+    <!-- DIVIDER -->
+    <div class="divider">
+      <div class="div-badge">
+        <div class="div-dot a"></div> A
+        <svg style="width:13px;height:13px;stroke:var(--dim);fill:none;stroke-width:2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>
+        B <div class="div-dot b"></div>
+      </div>
+    </div>
+
+    <!-- PERSONA B -->
+    <div class="persona persona-b">
+      <div class="inner">
+        <div class="lang-row">
+          <div class="lang-badge">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 1 0 20M12 2a14.5 14.5 0 0 0 0 20M2 12h20"/></svg>
+            <span id="bLangName">English</span>
+            <select id="bLang" onchange="syncConvLangs()">
+              <option value="Español" data-code="es-ES">Español</option>
+              <option value="English" data-code="en-US" selected>English</option>
+              <option value="Français" data-code="fr-FR">Français</option>
+              <option value="Deutsch" data-code="de-DE">Deutsch</option>
+              <option value="Italiano" data-code="it-IT">Italiano</option>
+              <option value="Português" data-code="pt-BR">Português</option>
+              <option value="中文" data-code="zh-CN">中文</option>
+              <option value="日本語" data-code="ja-JP">日本語</option>
+              <option value="한국어" data-code="ko-KR">한국어</option>
+              <option value="Русский" data-code="ru-RU">Русский</option>
+              <option value="العربية" data-code="ar-SA">العربية</option>
+              <option value="Türkçe" data-code="tr-TR">Türkçe</option>
+              <option value="Polski" data-code="pl-PL">Polski</option>
+              <option value="Català" data-code="ca-ES">Català</option>
+              <option value="Valenciano" data-code="ca-ES">Valenciano</option>
+            </select>
+          </div>
+          <div class="who">Persona B</div>
+        </div>
+        <div class="bubble" id="bBubble">
+          <div class="orig" id="bOrig"></div>
+          <div class="transl empty" id="bTrans">Pulsa el botón y habla…</div>
+        </div>
+        <div class="status-lbl" id="bSt"></div>
+        <button class="mic-big" id="bMic" onclick="startConv('b')">
+          <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/></svg>
+          Hablar (Persona B)
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /conv-wrap -->
+
+  <!-- BARRA DE GRABACIÓN DE SESIÓN -->
+  <div class="rec-bar">
+    <button class="rec-toggle idle" id="recToggle" onclick="toggleSessionRec()">
+      <div class="rdot"></div>
+      <svg id="recIcon" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/></svg>
+      <span id="recLabel">Grabar sesión</span>
+    </button>
+    <div class="rec-timer" id="recTimer">0:00</div>
+  </div>
+</div>
+
+<!-- ══════ TAB 1: HISTORIAL ══════ -->
+<div class="view" id="view1">
+  <div class="hist-view" style="display:flex;flex-direction:column;flex:1;padding:14px;gap:0">
+    <div class="hist-header">
+      <div class="hist-title">Historial</div>
+      <button class="hist-clear" onclick="clearHistory()">Borrar todo</button>
+    </div>
+    <div id="histContent"></div>
+  </div>
+</div>
+
+<!-- ══════ TAB 2: TEXTO ══════ -->
+<div class="view" id="view2">
+  <div class="text-wrap">
+    <div class="lang-bar">
+      <div class="ls">
+        <div class="ls-lbl">Origen</div>
+        <div class="ls-val" id="tSrcN">Español</div>
+        <select id="tSrc" onchange="syncTL()">
+          <option value="Español" selected>Español</option>
+          <option value="English">English</option>
+          <option value="Français">Français</option>
+          <option value="Deutsch">Deutsch</option>
+          <option value="Italiano">Italiano</option>
+          <option value="Português">Português</option>
+          <option value="中文">中文</option>
+          <option value="日本語">日本語</option>
+          <option value="한국어">한국어</option>
+          <option value="Русский">Русский</option>
+          <option value="العربية">العربية</option>
+          <option value="Türkçe">Türkçe</option>
+          <option value="Polski">Polski</option>
+          <option value="Català">Català</option>
+          <option value="Valenciano">Valenciano</option>
+        </select>
+      </div>
+      <div class="swap" onclick="swapTL()">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>
+      </div>
+      <div class="ls">
+        <div class="ls-lbl">Destino</div>
+        <div class="ls-val" id="tTgtN">English</div>
+        <select id="tTgt" onchange="syncTL()">
+          <option value="Español">Español</option>
+          <option value="English" selected>English</option>
+          <option value="Français">Français</option>
+          <option value="Deutsch">Deutsch</option>
+          <option value="Italiano">Italiano</option>
+          <option value="Português">Português</option>
+          <option value="中文">中文</option>
+          <option value="日本語">日本語</option>
+          <option value="한국어">한국어</option>
+          <option value="Русский">Русский</option>
+          <option value="العربية">العربية</option>
+          <option value="Türkçe">Türkçe</option>
+          <option value="Polski">Polski</option>
+          <option value="Català">Català</option>
+          <option value="Valenciano">Valenciano</option>
+        </select>
+      </div>
+    </div>
+    <div class="tcard">
+      <div class="tcard-head"><span>Texto a traducir</span><span id="tcc">0</span></div>
+      <textarea id="tInp" placeholder="Escribe aquí o dicta…" rows="4" oninput="g('tcc').textContent=this.value.length"></textarea>
+      <div class="tcard-foot">
+        <button class="tb va" onclick="tDictar()">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/></svg>
+          Dictar
+        </button>
+        <button class="tb ml" onclick="tClear()">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M19 6l-1 14H6L5 6M8 6V4h8v2"/></svg>
+          Borrar
+        </button>
+      </div>
+    </div>
+    <button class="tr-btn" id="trBtn" onclick="doTrans()">
+      <div class="sp"></div>
+      <span class="bt">
+        <svg style="width:15px;height:15px;stroke:#fff;stroke-width:2;fill:none;flex-shrink:0" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1M22 22l-5-10-5 10M14 18h6"/></svg>
+        Traducir
+      </span>
+    </button>
+    <div class="st-bar" id="stBar"><div class="st-dot"></div><span id="stTxt"></span></div>
+    <div class="tcard">
+      <div class="tcard-head">
+        <span>Traducción</span>
+        <button class="tb vb" style="padding:4px 10px;font-size:11px" onclick="tCopy()">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+          Copiar
+        </button>
+      </div>
+      <div class="out-txt empty" id="tOut">La traducción aparecerá aquí…</div>
+      <div class="tcard-foot">
+        <button class="tb vb" onclick="tSpeak()">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          Escuchar
+        </button>
+        <button class="tb ml" onclick="tFlip()">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          Usar como origen
+        </button>
+      </div>
     </div>
   </div>
-
-  <!-- VOICE TRANSLATE + RECORD -->
-  <div class="mic-row">
-    <button class="mic-btn v-btn" id="vtBtn" onclick="toggleVoiceTrans()">
-      <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-        <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/>
-      </svg>
-      Tiempo real
-    </button>
-    <button class="mic-btn r-btn" id="recBtn" onclick="toggleRec()">
-      <div class="rdot"></div>
-      <svg id="ricon" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-        <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/>
-      </svg>
-      Grabar
-    </button>
-  </div>
-
-  <!-- RECORDINGS -->
-  <div class="recs-wrap">
-    <div class="sec-title">Grabaciones <span id="rcnt">0</span></div>
-    <div class="rec-list" id="rl"></div>
-  </div>
-
-</div><!-- /content -->
+</div>
 
 <script>
-// ── STATE ──
-let apiKey = localStorage.getItem('vl_k') || '';
-let recs = JSON.parse(localStorage.getItem('vl_r') || '[]');
-let mr = null, chunks = [], isRec = false;
-let recog = null, vtActive = false;
-let deferredPrompt = null;
-let playId = null;
+// ══ STATE ══
+let apiKey = localStorage.getItem('vl_k')||'';
+let sessions = JSON.parse(localStorage.getItem('vl_sess')||'[]'); // array of session objects
+let convActive = false, convRecog = null;
+
+// Session recording
+let sessionMR = null, sessionChunks = [], sessionRecording = false;
+let sessionStream = null, timerInterval = null, sessionSeconds = 0;
+let currentSession = null; // session being built
 
 const LANGS = {
   'Español':'es-ES','English':'en-US','Français':'fr-FR','Deutsch':'de-DE',
   'Italiano':'it-IT','Português':'pt-BR','中文':'zh-CN','日本語':'ja-JP',
-  '한국어':'ko-KR','Русский':'ru-RU','العربية':'ar-SA','हिन्दी':'hi-IN',
-  'Türkçe':'tr-TR','Polski':'pl-PL','Nederlands':'nl-NL','Català':'ca-ES','Valenciano':'ca-ES'
+  '한국어':'ko-KR','Русский':'ru-RU','العربية':'ar-SA','Türkçe':'tr-TR',
+  'Polski':'pl-PL','Català':'ca-ES','Valenciano':'ca-ES'
 };
 
-// ── INIT ──
-if (apiKey) hide('apiModal');
+// ══ INIT ══
+if(apiKey) hide('apiModal');
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+renderHistory();
 
-// PWA install prompt
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault(); deferredPrompt = e;
-  if (!localStorage.getItem('vl_installed')) show('installBar');
-});
-window.addEventListener('appinstalled', () => {
-  hide('installBar'); localStorage.setItem('vl_installed','1');
-});
-
-// Register service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+// ══ HELPERS ══
+function g(id){return document.getElementById(id);}
+function show(id){g(id).classList.remove('hidden');}
+function hide(id){g(id).classList.add('hidden');}
+function toast(msg,dur=2200){
+  const t=g('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
 }
+function fmtTime(s){const m=Math.floor(s/60);return m+':'+(s%60<10?'0':'')+s%60;}
+function nowStr(){return new Date().toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});}
 
-renderRecs();
-
-// ── HELPERS ──
-function $(id) { return document.getElementById(id); }
-function show(id) { $(id).classList.remove('hidden'); }
-function hide(id) { $(id).classList.add('hidden'); }
-function toast(msg, dur=2000) {
-  const t = $('toast'); t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), dur);
-}
-function setStatus(msg, active=false) {
-  $('st').textContent = msg;
-  $('sb').classList.toggle('on', active);
+// ══ TABS ══
+function goTab(n){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',i===n));
+  document.querySelectorAll('.view').forEach((v,i)=>v.classList.toggle('on',i===n));
+  if(n===1) renderHistory();
 }
 
-// ── API KEY ──
-function saveKey() {
-  const k = $('apiKeyInput').value.trim();
-  if (!k || !k.startsWith('sk-ant')) return toast('⚠ Clave inválida (debe empezar con sk-ant...)');
-  apiKey = k; localStorage.setItem('vl_k', k);
-  hide('apiModal'); toast('✓ Clave guardada');
+// ══ API KEY ══
+function saveKey(){
+  const k=g('apiKeyInput').value.trim();
+  if(!k||!k.startsWith('sk-ant')) return toast('⚠ Clave inválida');
+  apiKey=k;localStorage.setItem('vl_k',k);
+  hide('apiModal');toast('✓ Clave guardada');
 }
-function openSettings() {
-  $('apiKeyInput').value = apiKey;
-  show('apiModal');
+function openSettings(){g('apiKeyInput').value=apiKey;show('apiModal');}
+
+// ══ CLAUDE API ══
+async function claudeTranslate(text,src,tgt){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:1000,
+      system:`Eres un traductor profesional experto. Traduce del ${src} al ${tgt}. Responde SOLO con la traducción, sin explicaciones, comillas ni prefijos. Mantén el tono natural del hablante.`,
+      messages:[{role:'user',content:text}]
+    })
+  });
+  const d=await res.json();
+  if(d.error) throw new Error(d.error.message);
+  return d.content[0].text.trim();
 }
 
-// ── INSTALL ──
-function installApp() {
-  if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt.userChoice.then(()=>{ deferredPrompt=null; hide('installBar'); }); }
-  else { toast('Menú del navegador → "Añadir a pantalla de inicio"', 4000); }
-}
-function dismissInstall() { hide('installBar'); }
-
-// ── LANGS ──
-function syncLangs() {
-  $('srcName').textContent = $('srcLang').value;
-  $('tgtName').textContent = $('tgtLang').value;
-}
-function swapLangs() {
-  const sv = $('srcLang').value, tv = $('tgtLang').value;
-  $('srcLang').value = tv; $('tgtLang').value = sv; syncLangs();
-  const outEl = $('out');
-  if (!outEl.classList.contains('empty')) {
-    $('inp').value = outEl.textContent;
-    $('cc').textContent = $('inp').value.length;
-    outEl.textContent = 'La traducción aparecerá aquí…';
-    outEl.classList.add('empty');
-  }
-}
-
-// ── TRANSLATE ──
-async function doTranslate() {
-  const text = $('inp').value.trim();
-  if (!text) return toast('Escribe algo primero');
-  if (!apiKey) { show('apiModal'); return; }
-  const src = $('srcLang').value, tgt = $('tgtLang').value;
-  const btn = $('tBtn');
-  btn.classList.add('loading'); btn.disabled = true;
-  setStatus('Traduciendo...', true);
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body: JSON.stringify({
-        model:'claude-sonnet-4-20250514', max_tokens:1000,
-        system:`Eres un traductor profesional. Traduce del ${src} al ${tgt}. Responde SOLO con la traducción, sin comillas, notas ni explicaciones.`,
-        messages:[{role:'user',content:text}]
-      })
-    });
-    const d = await res.json();
-    if (d.error) throw new Error(d.error.message);
-    const out = d.content[0].text.trim();
-    $('out').textContent = out;
-    $('out').classList.remove('empty');
-    setStatus('✓ Listo', false);
-    setTimeout(()=>setStatus(''), 2500);
-  } catch(e) {
-    setStatus('Error: '+e.message);
-    toast('❌ '+e.message, 3500);
-  } finally {
-    btn.classList.remove('loading'); btn.disabled = false;
-  }
-}
-
-// ── COPY ──
-function copyOut() {
-  const el = $('out');
-  if (el.classList.contains('empty')) return;
-  navigator.clipboard.writeText(el.textContent)
-    .then(()=>toast('✓ Copiado'))
-    .catch(()=>{ const r=document.createRange();r.selectNode(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');toast('✓ Copiado'); });
-}
-
-// ── FLIP ──
-function flipToInput() {
-  const el = $('out');
-  if (!el.classList.contains('empty')) {
-    $('inp').value = el.textContent;
-    $('cc').textContent = $('inp').value.length;
-    swapLangs();
-  }
-}
-function clearAll() {
-  $('inp').value=''; $('cc').textContent='0';
-  $('out').textContent='La traducción aparecerá aquí…'; $('out').classList.add('empty');
-  setStatus('');
-}
-
-// ── TTS ──
-function speakOut() {
-  const el = $('out');
-  if (el.classList.contains('empty')) return;
-  const lang = LANGS[$('tgtLang').value] || 'en-US';
-  if (!('speechSynthesis' in window)) return toast('Tu navegador no soporta TTS');
+// ══ TTS ══
+function speak(text,lang,onend){
+  if(!('speechSynthesis' in window)){toast('Tu navegador no soporta voz');return;}
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(el.textContent);
-  u.lang=lang; u.rate=0.9; u.pitch=1;
-  u.onstart=()=>setStatus('🔊 Reproduciendo...', true);
-  u.onend=()=>setStatus('');
-  window.speechSynthesis.speak(u);
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=lang||'en-US';u.rate=0.92;u.pitch=1;
+  if(onend) u.onend=onend;
+  setTimeout(()=>window.speechSynthesis.speak(u),100);
 }
 
-// ── SPEECH INPUT ──
-function speechInput() {
-  const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
-  if (!SR) return toast('Usa Chrome en Android para dictado');
-  const lang = LANGS[$('srcLang').value]||'es-ES';
-  const r=new SR(); r.lang=lang; r.interimResults=true;
-  r.onstart=()=>setStatus('🎤 Escuchando...', true);
-  r.onresult=e=>{ let t=''; for(let i=0;i<e.results.length;i++) t+=e.results[i][0].transcript; $('inp').value=t; $('cc').textContent=t.length; };
-  r.onend=()=>setStatus('');
-  r.onerror=e=>setStatus('Error: '+e.error);
+// ══ LANG SYNC ══
+function syncConvLangs(){
+  g('aLangName').textContent=g('aLang').value;
+  g('bLangName').textContent=g('bLang').value;
+}
+function syncTL(){g('tSrcN').textContent=g('tSrc').value;g('tTgtN').textContent=g('tTgt').value;}
+
+// ══════════════════════════════════
+//  GRABACIÓN DE SESIÓN (audio completo)
+// ══════════════════════════════════
+async function toggleSessionRec(){
+  if(sessionRecording){
+    stopSessionRec();
+  } else {
+    await startSessionRec();
+  }
+}
+
+async function startSessionRec(){
+  try{
+    sessionStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    sessionChunks=[];
+    const mime=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
+    sessionMR=new MediaRecorder(sessionStream,{mimeType:mime});
+    sessionMR.ondataavailable=e=>{if(e.data.size>0)sessionChunks.push(e.data);};
+    sessionMR.onstop=()=>finalizeSession();
+    sessionMR.start(200);
+    sessionRecording=true;
+    sessionSeconds=0;
+
+    // Crear sesión en historial
+    currentSession={
+      id:Date.now(),
+      date:nowStr(),
+      langA:g('aLang').value,
+      langB:g('bLang').value,
+      turns:[],
+      audioUrl:null,
+      audioExt:mime.includes('webm')?'webm':'mp4',
+      duration:0
+    };
+
+    // UI
+    const btn=g('recToggle');
+    btn.classList.remove('idle');btn.classList.add('recording');
+    g('recLabel').textContent='Detener grabación';
+    g('recIcon').innerHTML='<rect x="6" y="6" width="12" height="12" rx="2"/>';
+    g('recTimer').classList.add('on');
+
+    timerInterval=setInterval(()=>{
+      sessionSeconds++;
+      g('recTimer').textContent=fmtTime(sessionSeconds);
+    },1000);
+
+    toast('⏺ Grabación iniciada');
+  }catch(e){
+    toast('❌ Sin acceso al micrófono: '+e.message,3500);
+  }
+}
+
+function stopSessionRec(){
+  if(sessionMR&&sessionRecording){
+    clearInterval(timerInterval);
+    sessionMR.stop();
+    sessionRecording=false;
+    sessionStream&&sessionStream.getTracks().forEach(t=>t.stop());
+
+    const btn=g('recToggle');
+    btn.classList.remove('recording');btn.classList.add('idle');
+    g('recLabel').textContent='Grabar sesión';
+    g('recIcon').innerHTML='<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/>';
+    g('recTimer').textContent='0:00';
+    g('recTimer').classList.remove('on');
+  }
+}
+
+function finalizeSession(){
+  if(!currentSession) return;
+  const ext=currentSession.audioExt;
+  const blob=new Blob(sessionChunks,{type:'audio/'+ext});
+  currentSession.audioUrl=URL.createObjectURL(blob);
+  currentSession.duration=fmtTime(sessionSeconds);
+  currentSession.kb=Math.round(blob.size/1024);
+
+  sessions.unshift(currentSession);
+  currentSession=null;
+  // No persistimos audioUrl (blob URL no persiste), solo los turnos y metadatos
+  saveHistory();
+  toast('✓ Sesión guardada en Historial',2800);
+}
+
+// ══ AÑADIR TURNO A SESIÓN ACTUAL ══
+function addTurn(who, original, translated){
+  if(!currentSession) return;
+  currentSession.turns.push({
+    who,
+    original,
+    translated,
+    time: new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+  });
+}
+
+// ══════════════════════════════════
+//  MODO CONVERSACIÓN
+// ══════════════════════════════════
+function setCSt(who,msg,on=false){
+  const el=g(who+'St');el.textContent=msg;el.classList.toggle('on',on);
+}
+
+async function startConv(who){
+  if(convActive){
+    convRecog&&convRecog.stop();
+    window.speechSynthesis&&window.speechSynthesis.cancel();
+    convActive=false;
+    g('aMic').classList.remove('listening');
+    g('bMic').classList.remove('listening');
+    setCSt('a','');setCSt('b','');
+    return;
+  }
+  if(!apiKey){show('apiModal');return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return toast('Necesitas Chrome en Android para reconocimiento de voz');
+
+  const other=who==='a'?'b':'a';
+  const srcLang=g(who+'Lang').value;
+  const tgtLang=g(other+'Lang').value;
+  const srcCode=LANGS[srcLang]||'es-ES';
+  const tgtCode=LANGS[tgtLang]||'en-US';
+
+  convActive=true;
+  g(who+'Mic').classList.add('listening');
+  setCSt(who,'🎤 Escuchando…',true);
+
+  convRecog=new SR();
+  convRecog.lang=srcCode;
+  convRecog.interimResults=true;
+  convRecog.maxAlternatives=1;
+
+  convRecog.onresult=e=>{
+    let interim='',final='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal) final+=e.results[i][0].transcript;
+      else interim+=e.results[i][0].transcript;
+    }
+    g(who+'Orig').textContent=interim||final;
+  };
+
+  convRecog.onend=async()=>{
+    g(who+'Mic').classList.remove('listening');
+    convActive=false;
+    const spoken=g(who+'Orig').textContent.trim();
+    if(!spoken){setCSt(who,'');return;}
+
+    setCSt(who,'Traduciendo…',true);
+    try{
+      const translated=await claudeTranslate(spoken,srcLang,tgtLang);
+
+      // Mostrar resultado
+      g(who+'Orig').textContent=spoken;
+      g(who+'Trans').textContent=translated;
+      g(who+'Trans').classList.remove('empty');
+      setCSt(who,'✓ Listo');setTimeout(()=>setCSt(who,''),2500);
+
+      // Guardar turno en sesión activa
+      addTurn(who,spoken,translated);
+
+      // Hablar traducción para la otra persona
+      setCSt(other,'🔊 Escucha…',true);
+      speak(translated,tgtCode,()=>setCSt(other,''));
+    }catch(e){
+      setCSt(who,'Error: '+e.message);
+      toast('❌ '+e.message,3000);
+    }
+  };
+
+  convRecog.onerror=e=>{
+    g(who+'Mic').classList.remove('listening');
+    convActive=false;
+    setCSt(who,e.error==='no-speech'?'Sin voz. Intenta de nuevo.':'Error: '+e.error);
+    setTimeout(()=>setCSt(who,''),3000);
+  };
+
+  convRecog.start();
+}
+
+// ══════════════════════════════════
+//  HISTORIAL
+// ══════════════════════════════════
+function saveHistory(){
+  // Guardamos sesiones sin audioUrl (no serializable como blob)
+  const toSave=sessions.map(s=>({...s,audioUrl:null}));
+  try{localStorage.setItem('vl_sess',JSON.stringify(toSave));}catch(e){}
+}
+
+let playingSessionId=null;
+
+function renderHistory(){
+  const el=g('histContent');
+  if(!sessions.length){
+    el.innerHTML=`<div class="empty-hist">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Sin sesiones grabadas.<br>Activa la grabación en la pestaña Conversación.
+    </div>`;
+    return;
+  }
+
+  el.innerHTML=sessions.map((s,si)=>{
+    const turns=s.turns||[];
+    const hasAudio=!!s.audioUrl;
+    return`<div class="session-card" style="animation:fadeUp .3s ease">
+      <div class="session-head">
+        <div class="session-info">
+          <div class="session-name">${s.langA} ↔ ${s.langB}</div>
+          <div class="session-meta">${s.date} · ${s.duration||'—'} · ${turns.length} turnos${s.kb?' · '+s.kb+'KB':''}</div>
+        </div>
+        <div class="session-acts">
+          ${hasAudio?`<button class="sact play" id="sp${s.id}" onclick="playSession(${si})" title="Reproducir">
+            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>`:''}
+          ${hasAudio?`<a class="sact dl" href="${s.audioUrl}" download="sesion-${s.id}.${s.audioExt||'webm'}" title="Descargar audio">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          </a>`:''}
+          <button class="sact" style="background:rgba(108,99,255,.1);border:0.5px solid rgba(108,99,255,.2)" onclick="exportTxt(${si})" title="Exportar texto">
+            <svg viewBox="0 0 24 24" style="stroke:var(--a)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          </button>
+          <button class="sact del" onclick="delSession(${si})" title="Eliminar">
+            <svg viewBox="0 0 24 24"><path d="M3 6h18M19 6l-1 14H6L5 6M8 6V4h8v2"/></svg>
+          </button>
+        </div>
+      </div>
+      ${turns.length?`<div class="turn-list">${turns.map(t=>`
+        <div class="turn-item">
+          <div class="turn-who ${t.who}">${t.who.toUpperCase()}</div>
+          <div class="turn-content">
+            <div class="turn-orig">${escHtml(t.original)}</div>
+            <div class="turn-trans">${escHtml(t.translated)}</div>
+            <div class="turn-time">${t.time}</div>
+          </div>
+        </div>`).join('')}</div>`
+      :'<div style="padding:12px 14px;font-size:12px;color:var(--dim)">Sin turnos registrados</div>'}
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function playSession(si){
+  const s=sessions[si];
+  if(!s||!s.audioUrl) return toast('Audio no disponible (recarga la sesión)');
+  const au=g('audio');
+  if(playingSessionId===s.id){au.pause();playingSessionId=null;return;}
+  au.src=s.audioUrl;au.play();
+  playingSessionId=s.id;
+  au.onended=()=>{playingSessionId=null;};
+}
+
+function delSession(si){
+  sessions.splice(si,1);
+  saveHistory();renderHistory();
+}
+
+function clearHistory(){
+  if(!sessions.length) return;
+  if(confirm('¿Borrar todo el historial?')){sessions=[];saveHistory();renderHistory();}
+}
+
+function exportTxt(si){
+  const s=sessions[si];
+  if(!s) return;
+  let txt=`VOXLINGO — Transcripción de sesión\n`;
+  txt+=`Fecha: ${s.date}\n`;
+  txt+=`Idiomas: ${s.langA} ↔ ${s.langB}\n`;
+  txt+=`Duración: ${s.duration||'—'}\n`;
+  txt+=`${'─'.repeat(40)}\n\n`;
+  (s.turns||[]).forEach(t=>{
+    txt+=`[${t.time}] Persona ${t.who.toUpperCase()}\n`;
+    txt+=`  Original:   ${t.original}\n`;
+    txt+=`  Traducción: ${t.translated}\n\n`;
+  });
+  const blob=new Blob([txt],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`sesion-${s.id}.txt`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  toast('✓ Transcripción exportada');
+}
+
+// ══════════════════════════════════
+//  MODO TEXTO
+// ══════════════════════════════════
+function setTSt(msg,on=false){g('stTxt').textContent=msg;g('stBar').classList.toggle('on',on);}
+
+async function doTrans(){
+  const text=g('tInp').value.trim();
+  if(!text) return toast('Escribe algo primero');
+  if(!apiKey){show('apiModal');return;}
+  const src=g('tSrc').value,tgt=g('tTgt').value;
+  const btn=g('trBtn');btn.classList.add('ld');btn.disabled=true;
+  setTSt('Traduciendo…',true);
+  try{
+    const out=await claudeTranslate(text,src,tgt);
+    g('tOut').textContent=out;g('tOut').classList.remove('empty');
+    setTSt('✓ Listo');setTimeout(()=>setTSt(''),2500);
+  }catch(e){setTSt('Error: '+e.message);toast('❌ '+e.message,3000);}
+  finally{btn.classList.remove('ld');btn.disabled=false;}
+}
+
+function tDictar(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return toast('Usa Chrome en Android para dictado');
+  const r=new SR();r.lang=LANGS[g('tSrc').value]||'es-ES';r.interimResults=true;
+  r.onstart=()=>setTSt('🎤 Escuchando…',true);
+  r.onresult=e=>{let t='';for(let i=0;i<e.results.length;i++)t+=e.results[i][0].transcript;g('tInp').value=t;g('tcc').textContent=t.length;};
+  r.onend=()=>setTSt('');r.onerror=e=>setTSt('Error: '+e.error);
   r.start();
 }
-
-// ── VOICE TRANSLATE ──
-function toggleVoiceTrans() {
-  if (vtActive) { vtActive=false; recog&&recog.stop(); $('vtBtn').classList.remove('on'); setStatus(''); return; }
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if (!SR) return toast('Necesitas Chrome para usar esta función');
-  if (!apiKey) { show('apiModal'); return; }
-  vtActive=true; $('vtBtn').classList.add('on');
-  function go() {
-    recog=new SR(); recog.lang=LANGS[$('srcLang').value]||'es-ES'; recog.interimResults=false;
-    setStatus('🎤 Habla ahora...', true);
-    recog.onresult=async e=>{
-      const txt=e.results[0][0].transcript;
-      $('inp').value=txt; $('cc').textContent=txt.length;
-      await doTranslate(); speakOut();
-      if (vtActive) setTimeout(go, 500);
-    };
-    recog.onend=()=>{ if(!vtActive){$('vtBtn').classList.remove('on');setStatus('');} };
-    recog.onerror=e=>{ vtActive=false; $('vtBtn').classList.remove('on'); setStatus('Error: '+e.error); };
-    recog.start();
+function tSpeak(){
+  const el=g('tOut');if(el.classList.contains('empty'))return;
+  speak(el.textContent,LANGS[g('tTgt').value]);
+}
+function tCopy(){
+  const el=g('tOut');if(el.classList.contains('empty'))return;
+  navigator.clipboard.writeText(el.textContent).then(()=>toast('✓ Copiado')).catch(()=>{const r=document.createRange();r.selectNode(el);window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');toast('✓ Copiado');});
+}
+function tClear(){g('tInp').value='';g('tcc').textContent='0';g('tOut').textContent='La traducción aparecerá aquí…';g('tOut').classList.add('empty');setTSt('');}
+function tFlip(){
+  const el=g('tOut');
+  if(!el.classList.contains('empty')){
+    const tmp=el.textContent;
+    const sv=g('tSrc').value,tv=g('tTgt').value;
+    g('tSrc').value=tv;g('tTgt').value=sv;syncTL();
+    g('tInp').value=tmp;g('tcc').textContent=tmp.length;
+    el.textContent='La traducción aparecerá aquí…';el.classList.add('empty');
   }
-  go();
+}
+function swapTL(){
+  const sv=g('tSrc').value,tv=g('tTgt').value;
+  g('tSrc').value=tv;g('tTgt').value=sv;syncTL();
+  const el=g('tOut');
+  if(!el.classList.contains('empty')){g('tInp').value=el.textContent;g('tcc').textContent=g('tInp').value.length;el.textContent='La traducción aparecerá aquí…';el.classList.add('empty');}
 }
 
-// ── RECORDING ──
-async function toggleRec() {
-  if (isRec) { mr&&mr.stop(); return; }
-  try {
-    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-    chunks=[];
-    const mime=MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
-    mr=new MediaRecorder(stream,{mimeType:mime});
-    mr.ondataavailable=e=>{if(e.data.size>0)chunks.push(e.data);};
-    mr.onstop=()=>{ saveRec(stream, mime); };
-    mr.start(100); isRec=true;
-    $('recBtn').classList.add('on');
-    $('ricon').innerHTML='<rect x="6" y="6" width="12" height="12" rx="2"/>';
-    setStatus('⏺ Grabando...', true);
-  } catch(e) { toast('❌ Sin acceso al micrófono'); }
-}
-function saveRec(stream, mime) {
-  isRec=false; $('recBtn').classList.remove('on');
-  $('ricon').innerHTML='<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8"/>';
-  setStatus('');
-  const blob=new Blob(chunks,{type:mime});
-  const url=URL.createObjectURL(blob);
-  const ext=mime.includes('webm')?'webm':'mp4';
-  recs.unshift({
-    id:Date.now(), url, ext,
-    name:`${$('srcLang').value} → ${$('tgtLang').value}`,
-    date:new Date().toLocaleString('es-ES',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}),
-    kb:Math.round(blob.size/1024)
-  });
-  stream.getTracks().forEach(t=>t.stop());
-  renderRecs();
-  toast('✓ Grabación guardada');
-}
-function renderRecs() {
-  $('rcnt').textContent=recs.length;
-  $('rl').innerHTML=recs.length===0
-    ? `<div style="color:var(--muted);font-size:12px;padding:4px 0">Sin grabaciones aún</div>`
-    : recs.map(r=>`
-    <div class="rec-item" id="ri${r.id}">
-      <button class="rplay" id="rp${r.id}" onclick="playRec('${r.id}','${r.url}')">
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="5 3 19 12 5 21 5 3"/>
-        </svg>
-      </button>
-      <div class="rinfo">
-        <div class="rname">${r.name}</div>
-        <div class="rmeta">${r.date} · ${r.kb}KB</div>
-      </div>
-      <a class="ract dl" href="${r.url}" download="voxlingo-${r.id}.${r.ext||'webm'}">
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-        </svg>
-      </a>
-      <button class="ract del" onclick="delRec('${r.id}')">
-        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 6h18M19 6l-1 14H6L5 6M8 6V4h8v2"/>
-        </svg>
-      </button>
-    </div>`).join('');
-}
-function playRec(id, url) {
-  const au=$('audio');
-  if (playId===id) { au.pause(); playId=null; resetPlayBtn(id); return; }
-  if (playId) resetPlayBtn(playId);
-  au.src=url; au.play(); playId=id;
-  const btn=$(`#rp${id}`);
-  if(btn) btn.querySelector('svg').innerHTML='<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-  au.onended=()=>{ playId=null; resetPlayBtn(id); };
-}
-function resetPlayBtn(id) {
-  const btn=document.querySelector(`#rp${id} svg`);
-  if(btn) btn.innerHTML='<polygon points="5 3 19 12 5 21 5 3"/>';
-}
-function delRec(id) {
-  recs=recs.filter(r=>String(r.id)!==String(id)); renderRecs();
-}
-
-// ── KEYBOARD ──
-$('inp').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doTranslate();} });
+g('tInp').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();doTrans();}});
 </script>
 </body>
 </html>
