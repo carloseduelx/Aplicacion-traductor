@@ -221,10 +221,10 @@ audio{display:none}
   <div class="modal">
     <div class="mhandle"></div>
     <h2>VoxLingo</h2>
-    <p>Introduce tu API Key de Anthropic para activar la traducción con IA. Se guarda solo en este dispositivo.</p>
-    <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <p>Introduce tu API Key de Google Gemini para activar la traducción con IA. Es <strong style="color:var(--b)">completamente gratis</strong>. Se guarda solo en este dispositivo.</p>
+    <input type="password" id="apiKeyInput" placeholder="AIza..." autocomplete="off" autocorrect="off" spellcheck="false">
     <button class="modal-cta" onclick="saveKey()">Activar →</button>
-    <p class="modal-note">¿Sin clave? <a href="https://console.anthropic.com" target="_blank">Obtenerla en console.anthropic.com</a></p>
+    <p class="modal-note">¿Sin clave? <a href="https://aistudio.google.com/apikey" target="_blank">Obtenerla gratis en aistudio.google.com</a></p>
   </div>
 </div>
 
@@ -501,26 +501,26 @@ function goTab(n){
 // ══ API KEY ══
 function saveKey(){
   const k=g('apiKeyInput').value.trim();
-  if(!k||!k.startsWith('sk-ant')) return toast('⚠ Clave inválida');
+  if(!k||k.length<10) return toast('⚠ Clave inválida');
   apiKey=k;localStorage.setItem('vl_k',k);
   hide('apiModal');toast('✓ Clave guardada');
 }
 function openSettings(){g('apiKeyInput').value=apiKey;show('apiModal');}
 
-// ══ CLAUDE API ══
+// ══ GEMINI API (gratis) ══
 async function claudeTranslate(text,src,tgt){
-  const res=await fetch('https://api.anthropic.com/v1/messages',{
+  const prompt=`Eres un traductor profesional experto. Traduce del ${src} al ${tgt}. Responde SOLO con la traducción, sin explicaciones, comillas ni prefijos. Mantén el tono natural del hablante.\n\nTexto: ${text}`;
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{
     method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
-      model:'claude-sonnet-4-20250514',max_tokens:1000,
-      system:`Eres un traductor profesional experto. Traduce del ${src} al ${tgt}. Responde SOLO con la traducción, sin explicaciones, comillas ni prefijos. Mantén el tono natural del hablante.`,
-      messages:[{role:'user',content:text}]
+      contents:[{parts:[{text:prompt}]}],
+      generationConfig:{maxOutputTokens:1000,temperature:0.3}
     })
   });
   const d=await res.json();
   if(d.error) throw new Error(d.error.message);
-  return d.content[0].text.trim();
+  return d.candidates[0].content.parts[0].text.trim();
 }
 
 // ══ TTS ══
