@@ -510,7 +510,7 @@ function openSettings(){g('apiKeyInput').value=apiKey;show('apiModal');}
 // ══ GEMINI API (gratis) ══
 async function claudeTranslate(text,src,tgt){
   const prompt=`Eres un traductor profesional experto. Traduce del ${src} al ${tgt}. Responde SOLO con la traducción, sin explicaciones, comillas ni prefijos. Mantén el tono natural del hablante.\n\nTexto: ${text}`;
-  const res=await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`,{
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({
